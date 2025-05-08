@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firma Digital</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+        input, select, canvas {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .time-select {
+            display: flex;
+            justify-content: space-between;
+        }
+        .time-select select {
+            width: 48%;
+        }
+        canvas {
+            border: 1px solid #000;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Firma Digital</h1>
+        <label for="name">Nombre:</label>
+        <input type="text" id="name" name="name">
+        
+        <label for="date">Fecha:</label>
+        <input type="date" id="date" name="date">
+        
+        <label for="time">Hora:</label>
+        <div class="time-select">
+            <select id="hours" name="hours">
+                <option value="">Seleccionar</option>
+                <script>
+                    for (let i = 0; i < 24; i++) {
+                        document.write(`<option value="${i}">${i}</option>`);
+                    }
+                </script>
+            </select>
+            <select id="minutes" name="minutes">
+                <option value="">Seleccionar</option>
+                <script>
+                    for (let i = 0; i < 60; i++) {
+                        document.write(`<option value="${i}">${i}</option>`);
+                    }
+                </script>
+            </select>
+        </div>
+        
+        <label for="status">Estado:</label>
+        <select id="status" name="status">
+            <option value="recibido">Recibido</option>
+            <option value="entregado">Entregado</option>
+        </select>
+        
+        <label for="signature">Firma:</label>
+        <canvas id="signature" width="600" height="200"></canvas>
+        <button onclick="clearCanvas()">Limpiar</button>
+        <button onclick="saveAsPDF()">Guardar como PDF</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('signature');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+
+        canvas.addEventListener('mousedown', () => drawing = true);
+        canvas.addEventListener('mouseup', () => drawing = false);
+        canvas.addEventListener('mousemove', draw);
+
+        function draw(event) {
+            if (!drawing) return;
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#000';
+            ctx.lineTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function saveAsPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const name = document.getElementById('name').value;
+            const date = document.getElementById('date').value;
+            const hours = document.getElementById('hours').value;
+            const minutes = document.getElementById('minutes').value;
+            const status = document.getElementById('status').value;
+            const signature = canvas.toDataURL('image/png');
+
+            doc.text(`Nombre: ${name}`, 10, 10);
+            doc.text(`Fecha: ${date}`, 10, 20);
+            doc.text(`Hora: ${hours}:${minutes}`, 10, 30);
+            doc.text(`Estado: ${status}`, 10, 40);
+            doc.addImage(signature, 'PNG', 10, 50, 180, 60);
+
+            doc.save('firma_digital.pdf');
+            window.location.href = "https://forms.office.com/r/4XztZtjQVh";
+        }
+    </script>
+</body>
+</html>
